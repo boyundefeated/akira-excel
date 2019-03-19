@@ -17,12 +17,13 @@ import com.github.boyundefeated.akiraexcel.utils.FileHelper;
 
 /**
  * The entry point of the mapping process.
- * <p>
+ * 
  * Example:
  * 
- * <pre>
- * List<Employee> employees = AkiraExcel.fromExcel(new File("employees.xls"),
- * Employee.class); employees.size(); // 3
+ * List{Employee} employees = AkiraExcel.fromExcel(new File("employees.xls"), Employee.class);
+ * employees.size(); // 3
+ * 
+ * Workbook wb = AkiraExcel.toExcel(employees);
  * 
  * NOTE @ExcelColumnIndex is higher priority than @ExcelColumnTitle
  * 
@@ -34,7 +35,10 @@ public final class AkiraExcel {
 
 	/**
 	 * @author duynh5
-	 * 
+	 * @param <T> The expected class of the value.
+	 * @param file Excel file to import
+	 * @param type The type of Class corresponding with a row in excel
+	 * @return A list of object in java
 	 */
 	public static synchronized <T> List<T> fromExcel(final File file, final Class<T> type) {
 		AkiraExcelType excelType = FileHelper.getType(file.getName());
@@ -43,6 +47,14 @@ public final class AkiraExcel {
 		return list;
 	}
 
+	/**
+	 * @author duynh5	 	 
+	 * @param <T> The expected class of the value.
+	 * @param inputStream The input stream of excel file
+	 * @param excelType Type of excel, must be XLS or XLSX
+	 * @param type The type of Class corresponding with a row in excel
+	 * @return A list of object in java
+	 */
 	public static synchronized <T> List<T> fromExcel(final InputStream inputStream, AkiraExcelType excelType,
 			final Class<T> type) {
 		AkiraWraper<T> wraper = new AkiraWraper<T>(inputStream, excelType, type);
@@ -50,6 +62,14 @@ public final class AkiraExcel {
 		return list;
 	}
 
+	/**
+	 * @author duynh5	 	 
+	 * @param <T> The expected class of the value.
+	 * @param data List data to be exported
+	 * @param type The class type of data
+	 * @param options The options
+	 * @return A excel workbook
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static synchronized <T> Workbook toExcel(List<T> data, Class<?> type, AkiraWriterFormatOptions options) {
 		XSSFWorkbook wb = new XSSFWorkbook();
@@ -64,10 +84,24 @@ public final class AkiraExcel {
 		return wb;
 	}
 
+	/**
+	 * @author duynh5	 	 
+	 * @param <T> The expected class of the value.
+	 * @param data List data to be exported
+	 * @param type The class type of data
+	 * @return A excel workbook
+	 */
 	public static synchronized <T> Workbook toExcel(List<T> data, Class<?> type) {
 		return toExcel(data, type, new AkiraWriterFormatOptions.Builder().build());
 	}
 
+	/**
+	 * @author duynh5	 	 
+	 * @param <T> The expected class of the value.
+	 * @param data List data to be exported
+	 * @param options The options
+	 * @return A excel workbook
+	 */
 	public static synchronized <T> Workbook toExcel(List<T> data, AkiraWriterFormatOptions options) {
 		Class<? extends Object> type = null;
 		try {
@@ -78,6 +112,12 @@ public final class AkiraExcel {
 		return toExcel(data, type, options);
 	}
 
+	/**
+	 * @author duynh5	 	 
+	 * @param <T> The expected class of the value.
+	 * @param data List data to be exported
+	 * @return A excel workbook
+	 */
 	public static synchronized <T> Workbook toExcel(List<T> data) {
 		try {
 			Class<? extends Object> type = data.get(0).getClass();

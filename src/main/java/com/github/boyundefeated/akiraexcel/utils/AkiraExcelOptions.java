@@ -264,7 +264,7 @@ public final class AkiraExcelOptions {
         /**
          * set password for encrypted excel file, Default is null
          *
-         * @param password
+         * @param password password of excel file
          * @return this
          */
         public AkiraExcelOptionsBuilder password(String password) {
