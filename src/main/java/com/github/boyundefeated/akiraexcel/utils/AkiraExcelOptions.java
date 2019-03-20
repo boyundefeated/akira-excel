@@ -150,7 +150,7 @@ public final class AkiraExcelOptions {
         private boolean dateLenient;
         private boolean trimCellValue;
         private boolean ignoreHiddenSheets;
-        private boolean preferNullOverDefault;
+        private boolean preferNullOverDefault = true;
         private String datePattern = DEFAULT_DATE_PATTERN;
         private DateTimeFormatter dateTimeFormatter = DEFAULT_DATE_TIME_FORMATTER;
         private Casting casting = new DefaultCasting();

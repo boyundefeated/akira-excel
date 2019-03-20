@@ -20,6 +20,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnDefaultValue;
+import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnIndex;
+import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnNotBlank;
 import com.github.boyundefeated.akiraexcel.bind.AkiraExcelHandler;
 import com.github.boyundefeated.akiraexcel.exception.AkiraExcelException;
 import com.github.boyundefeated.akiraexcel.utils.AkiraExcelOptions;
@@ -110,7 +113,32 @@ public class AkiraWraper<T> {
 							}
 						}
 					}
-					resultList.add(instance);
+					// check if field can not be null
+					boolean checkCanBeNull = true;
+					for (Field field : this.fields) {
+						field.setAccessible(true);
+						Object o = getValueOfField(field, instance);
+						
+						if(o == null) {
+							// check if has default value
+							ExcelColumnDefaultValue defaultValue = field.getAnnotation(ExcelColumnDefaultValue.class);
+							if(defaultValue != null) {
+								this.handler.setValueDirectly(field, defaultValue.value(), instance);
+							}
+						}
+						
+						// check if field is null
+						ExcelColumnNotBlank columnNotBlank = field.getAnnotation(ExcelColumnNotBlank.class);
+						if(columnNotBlank != null) {
+							o = getValueOfField(field, instance);
+							if(o == null || String.valueOf(o).equals("")) {
+								throw new AkiraExcelException("Field " + field.getName() + " can not be blank at row " + currentRow.getRowNum());
+							}
+						}
+					}
+					if(checkCanBeNull) {
+						resultList.add(instance);
+					}
 				}
 
 			}
@@ -127,4 +155,12 @@ public class AkiraWraper<T> {
 		}
 	}
 
+	private Object getValueOfField(Field field, Object instance) {
+		Object o = null;
+		try {
+			o = field.get(instance);
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+		}
+		return o;
+	}
 }

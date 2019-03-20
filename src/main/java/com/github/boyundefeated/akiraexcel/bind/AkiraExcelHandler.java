@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnDefaultValue;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnIndex;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnTitle;
 import com.github.boyundefeated.akiraexcel.config.Casting;
@@ -63,6 +64,17 @@ public class AkiraExcelHandler<T> {
 		return false;
 
 	}
+
+	public void setValueDirectly(Field field, String defaultValue, Object instance) {
+		try {
+			field.setAccessible(true);
+			Object oDefault = casting.castValue(field.getType(), defaultValue, options);
+			field.set(instance, oDefault);
+		} catch (IllegalAccessException e) {
+			throw new AkiraExcelException("Unexpected cast {" + defaultValue + "} of field" + field.getName());
+		}
+	}
+
 
 	public void setFieldData(Field field, Object o, Object instance) {
 		try {
