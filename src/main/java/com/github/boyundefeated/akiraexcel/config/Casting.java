@@ -1,5 +1,7 @@
 package com.github.boyundefeated.akiraexcel.config;
 
+import java.lang.reflect.Field;
+
 import com.github.boyundefeated.akiraexcel.utils.AkiraExcelOptions;
 
 /**
@@ -7,5 +9,5 @@ import com.github.boyundefeated.akiraexcel.utils.AkiraExcelOptions;
  *
  */
 public interface Casting {
-    Object castValue(Class<?> fieldType, String value, AkiraExcelOptions options);
+    Object castValue(Field field, String value, AkiraExcelOptions options);
 }

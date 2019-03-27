@@ -2,15 +2,15 @@ package com.akiraexcel.model;
 
 import java.util.Date;
 
-import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnIndex;
+import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnNotBlank;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnTitle;
-import com.github.boyundefeated.akiraexcel.annotation.ExcelDateFormatExport;
+import com.github.boyundefeated.akiraexcel.annotation.ExcelDateFormatImport;
 
-public class Employee extends Person {
+public class EmployeeWithDateFormat extends Person {
 
-//    @ExcelColumnIndex(0)
+//    @ExcelColumnIndex(0
 	@ExcelColumnTitle("ID")
-	protected long employeeId;
+	protected Long employeeId;
 
 //    @ExcelColumnIndex(1)
 	@ExcelColumnTitle("NAME")
@@ -28,8 +28,8 @@ public class Employee extends Person {
 	@ExcelColumnTitle("SINGLE")
 	protected boolean single;
 
-	@ExcelDateFormatExport(pattern = "dd-MM-YYYY HH:mm")
-	@ExcelColumnIndex(2)
+//    @ExcelColumnIndex(5)
+	@ExcelDateFormatImport(pattern="yyyy-dd-MM")
 	@ExcelColumnTitle("BIRTHDAY")
 	protected Date birthday;
 

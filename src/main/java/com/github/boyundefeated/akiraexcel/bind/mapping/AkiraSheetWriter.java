@@ -21,7 +21,6 @@ import com.github.boyundefeated.akiraexcel.utils.AkiraWriterFormatOptions;
 public class AkiraSheetWriter<T> {
 	private Sheet sheet;
 	private List<T> data;
-	private Class<?> type;
 	private List<String> titles;
 	private Map<String, Field> fieldMap;
 	private Formatting formatting;
@@ -33,7 +32,6 @@ public class AkiraSheetWriter<T> {
 		super();
 		this.sheet = sheet;
 		this.data = data;
-		this.type = type;
 		this.titles = new ArrayList<>();
 		this.fieldMap = new HashMap<>();
 		this.formatting = options.getFormatting();
@@ -52,19 +50,25 @@ public class AkiraSheetWriter<T> {
 //		lsField.stream().forEach(f -> System.out.println(f.getName()));
 //		Field[] fields = this.type.getDeclaredFields();
 		for (Field field : lsField) {
+			ExcelColumnTitle columnTitle = field.getAnnotation(ExcelColumnTitle.class);
 			ExcelColumnIndex index = field.getAnnotation(ExcelColumnIndex.class);
+
 			if (index != null) {
 				// default title is Field name
-				titles.add(index.value(), field.getName());
-				fieldMap.put(field.getName(), field);
-			} else {
-				ExcelColumnTitle columnTitle = field.getAnnotation(ExcelColumnTitle.class);
-				if (columnTitle != null) {
+				if(columnTitle != null) {
+					titles.add(index.value(), columnTitle.value());
+					fieldMap.put(columnTitle.value(), field);
+				}else {
+					titles.add(index.value(), field.getName());
+					fieldMap.put(field.getName(), field);
+				}
+
+			}else {
+				if(columnTitle != null) {
 					titles.add(columnTitle.value());
 					fieldMap.put(columnTitle.value(), field);
 				}
 			}
-
 		}
 	}
 
@@ -91,7 +95,7 @@ public class AkiraSheetWriter<T> {
 				cell.setCellStyle(akiraCellStyle.getContentStyle());
 
 				try {
-					String value = formatting.formatValue(f.get(rowData), f.getType(), this.options);
+					String value = formatting.formatValue(f.get(rowData), f, this.options);
 					cell.setCellValue(value);
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					e.printStackTrace();

@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnDefaultValue;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnIndex;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnTitle;
 import com.github.boyundefeated.akiraexcel.config.Casting;
@@ -42,20 +41,18 @@ public class AkiraExcelHandler<T> {
 	public boolean setValue(Field field, int column, String content, Object ins) {
 		ExcelColumnIndex index = field.getAnnotation(ExcelColumnIndex.class);
 		if (index != null) {
-			Class<?> fieldType = field.getType();
 			if (column == index.value()) {
-				Object o = casting.castValue(fieldType, content, options);
+				Object o = casting.castValue(field, content, options);
 				setFieldData(field, o, ins);
 				return true;
 			}
 		} else {
 			ExcelColumnTitle excelColumnTitle = field.getAnnotation(ExcelColumnTitle.class);
 			if (excelColumnTitle != null) {
-				Class<?> fieldType = field.getType();
 				Integer titleColumn = titles.get(excelColumnTitle.value());
 				// Fix both columns mapped to name passing this condition below
 				if (titleColumn != null && titleColumn == column) {
-					Object o = casting.castValue(fieldType, content, options);
+					Object o = casting.castValue(field, content, options);
 					setFieldData(field, o, ins);
 					return true;
 				}
@@ -68,7 +65,7 @@ public class AkiraExcelHandler<T> {
 	public void setValueDirectly(Field field, String defaultValue, Object instance) {
 		try {
 			field.setAccessible(true);
-			Object oDefault = casting.castValue(field.getType(), defaultValue, options);
+			Object oDefault = casting.castValue(field, defaultValue, options);
 			field.set(instance, oDefault);
 		} catch (IllegalAccessException e) {
 			throw new AkiraExcelException("Unexpected cast {" + defaultValue + "} of field" + field.getName());

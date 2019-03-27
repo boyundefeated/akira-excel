@@ -1,9 +1,7 @@
 package com.github.boyundefeated.akiraexcel.utils;
 
 import static com.github.boyundefeated.akiraexcel.utils.AkiraExcelConstants.DEFAULT_DATE_PATTERN;
-import static com.github.boyundefeated.akiraexcel.utils.AkiraExcelConstants.DEFAULT_DATE_TIME_FORMATTER;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import com.github.boyundefeated.akiraexcel.config.Casting;
@@ -21,7 +19,6 @@ public final class AkiraExcelOptions {
     private boolean trimCellValue;
     private boolean ignoreHiddenSheets;
     private boolean preferNullOverDefault;
-    private DateTimeFormatter dateTimeFormatter;
     private Casting casting;
     private int headerStart;
 
@@ -39,10 +36,7 @@ public final class AkiraExcelOptions {
         return this;
     }
 
-    private AkiraExcelOptions setDateTimeFormatter(DateTimeFormatter dateTimeFormatter) {
-        this.dateTimeFormatter = dateTimeFormatter;
-        return this;
-    }
+
 
     private AkiraExcelOptions setPreferNullOverDefault(boolean preferNullOverDefault) {
         this.preferNullOverDefault = preferNullOverDefault;
@@ -60,10 +54,6 @@ public final class AkiraExcelOptions {
 
     public String datePattern() {
         return datePattern;
-    }
-
-    public DateTimeFormatter dateTimeFormatter() {
-        return dateTimeFormatter;
     }
 
     public boolean preferNullOverDefault() {
@@ -152,7 +142,6 @@ public final class AkiraExcelOptions {
         private boolean ignoreHiddenSheets;
         private boolean preferNullOverDefault = true;
         private String datePattern = DEFAULT_DATE_PATTERN;
-        private DateTimeFormatter dateTimeFormatter = DEFAULT_DATE_TIME_FORMATTER;
         private Casting casting = new DefaultCasting();
         private int headerStart = 0;
         private int skip = 0;
@@ -182,19 +171,7 @@ public final class AkiraExcelOptions {
         }
 
         /**
-         * set a date time formatter, default date time formatter is "dd/M/yyyy"
-         * for java.time.LocalDate
-         *
-         * @param dateTimeFormatter date time formatter
-         * @return this
-         */
-        public AkiraExcelOptionsBuilder dateTimeFormatter(DateTimeFormatter dateTimeFormatter) {
-            this.dateTimeFormatter = dateTimeFormatter;
-            return this;
-        }
-
-        /**
-         * set date pattern, default date format is "dd/M/yyyy" for
+         * set date pattern, default date format is "dd/MM/yyyy" for
          * java.util.Date
          *
          * @param datePattern date time formatter
@@ -223,7 +200,6 @@ public final class AkiraExcelOptions {
                     .setPassword(password)
                     .setPreferNullOverDefault(preferNullOverDefault)
                     .setDatePattern(datePattern)
-                    .setDateTimeFormatter(dateTimeFormatter)
                     .setSheetIndex(sheetIndex)
                     .setIgnoreHiddenSheets(ignoreHiddenSheets)
                     .setTrimCellValue(trimCellValue)

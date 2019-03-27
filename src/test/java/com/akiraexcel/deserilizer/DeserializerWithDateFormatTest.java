@@ -1,6 +1,5 @@
 package com.akiraexcel.deserilizer;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
@@ -12,29 +11,29 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import com.akiraexcel.model.EmployeeDefaultValue;
+import com.akiraexcel.model.EmployeeWithDateFormat;
 import com.github.boyundefeated.akiraexcel.bind.AkiraExcel;
 
 @RunWith(Parameterized.class)
-public class DeserializerNotBlankTest {
+public class DeserializerWithDateFormatTest {
 
 	private String path;
 
-	public DeserializerNotBlankTest(String path) {
+	public DeserializerWithDateFormatTest(String path) {
 		this.path = path;
 	}
 
 	@Parameterized.Parameters(name = "{index}: ({0})={1}")
 	public static Iterable<Object[]> queries() {
-		return Arrays.asList(new Object[][] { { "src/test/resources/employees_field_blank.xlsx" } });
+		return Arrays.asList(new Object[][] { { "src/test/resources/employees_format_date.xlsx" } });
 	}
 
 	@Test
 	public void shouldMapExcelToJava() {
-		List<EmployeeDefaultValue> employees = AkiraExcel.fromExcel(new File(path), EmployeeDefaultValue.class);
+		List<EmployeeWithDateFormat> employees = AkiraExcel.fromExcel(new File(path), EmployeeWithDateFormat.class);
 //		employees.stream().forEach(e -> System.out.println(e.toString()));
 		assertThat(employees, notNullValue());
-		assertThat(employees.size(), is(4));
-		assertThat(employees.get(3).getEmployeeId(), is(200L));
+		employees.stream().forEach(e -> assertThat(e.getBirthday(), notNullValue()));
+		
 	}
 }

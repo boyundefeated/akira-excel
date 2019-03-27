@@ -1,14 +1,18 @@
 package com.github.boyundefeated.akiraexcel.config;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnIndex;
+import com.github.boyundefeated.akiraexcel.annotation.ExcelDateFormatImport;
 import com.github.boyundefeated.akiraexcel.utils.AkiraExcelOptions;
 
 /**
@@ -119,9 +123,13 @@ public final class DefaultCasting implements Casting {
         }
     }
 
-    private Date dateValue(String value, AkiraExcelOptions options) {
-
-        //ISSUE #57
+    private Date dateValue(String value, AkiraExcelOptions options, Field field) {
+    	
+    	String datePattern = options.datePattern();
+    	ExcelDateFormatImport excelDateFormat = field.getAnnotation(ExcelDateFormatImport.class);
+    	if(excelDateFormat != null) {
+    		datePattern = excelDateFormat.pattern();
+    	}
         //if a date regex has been specified then it wont be null
         //so then make sure the string matches the pattern
         //if it doesn't, fall back to default
@@ -133,7 +141,7 @@ public final class DefaultCasting implements Casting {
             return defaultDate(options);
         } else {
             try {
-                final SimpleDateFormat sdf = new SimpleDateFormat(options.datePattern());
+                final SimpleDateFormat sdf = new SimpleDateFormat(datePattern);
                 sdf.setLenient(options.getDateLenient());
                 return sdf.parse(value);
             } catch (ParseException e) {
@@ -142,8 +150,12 @@ public final class DefaultCasting implements Casting {
         }
     }
 
-    private LocalDate localDateValue(String value, AkiraExcelOptions options) {
-
+    private LocalDate localDateValue(String value, AkiraExcelOptions options, Field field) {
+    	String datePattern = options.datePattern();
+    	ExcelDateFormatImport excelDateFormat = field.getAnnotation(ExcelDateFormatImport.class);
+    	if(excelDateFormat != null) {
+    		datePattern = excelDateFormat.pattern();
+    	}
         //ISSUE #57
         //if a date regex has been specified then it wont be null
         //so then make sure the string matches the pattern
@@ -156,7 +168,8 @@ public final class DefaultCasting implements Casting {
             return defaultLocalDate(options);
         } else {
             try {
-                return LocalDate.parse(value, options.dateTimeFormatter());
+            	DateTimeFormatter dtf = DateTimeFormatter.ofPattern(datePattern);
+                return LocalDate.parse(value, dtf);
             } catch (DateTimeParseException e) {
                 return defaultLocalDate(options);
             }
@@ -171,14 +184,14 @@ public final class DefaultCasting implements Casting {
                 .orElse(null);
     }
 
-    public Object castValue(Class<?> fieldType, String value, AkiraExcelOptions options) {
+    public Object castValue(Field field, String value, AkiraExcelOptions options) {
 
         if (options.trimCellValue()) {
             value = value.trim();
         }
 
         Object o = value;
-
+        Class<?> fieldType = field.getType();
         if (fieldType.getName().equals("int")) {
             o = primitiveIntegerValue(value);
 
@@ -210,10 +223,10 @@ public final class DefaultCasting implements Casting {
             o = Boolean.valueOf(value);
 
         } else if (fieldType.getName().equals("java.util.Date")) {
-            o = dateValue(value, options);
+            o = dateValue(value, options, field);
 
         } else if (fieldType.getName().equals("java.time.LocalDate")) {
-            o = localDateValue(value, options);
+            o = localDateValue(value, options, field);
 
         } else if (fieldType.isEnum()) {
             o = enumValue(value, fieldType);
