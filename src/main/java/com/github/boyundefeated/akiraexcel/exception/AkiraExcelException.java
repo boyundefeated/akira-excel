@@ -5,6 +5,8 @@ package com.github.boyundefeated.akiraexcel.exception;
  */
 public class AkiraExcelException extends RuntimeException {
 
+	private static final long serialVersionUID = 1L;
+
 	public AkiraExcelException(String message) {
 		super(message);
 	}

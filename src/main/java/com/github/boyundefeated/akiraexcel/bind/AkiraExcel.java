@@ -11,6 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.github.boyundefeated.akiraexcel.bind.mapping.AkiraSheetWriter;
 import com.github.boyundefeated.akiraexcel.bind.mapping.AkiraWraper;
 import com.github.boyundefeated.akiraexcel.exception.AkiraExcelException;
+import com.github.boyundefeated.akiraexcel.utils.AkiraExcelOptions;
 import com.github.boyundefeated.akiraexcel.utils.AkiraExcelType;
 import com.github.boyundefeated.akiraexcel.utils.AkiraWriterFormatOptions;
 import com.github.boyundefeated.akiraexcel.utils.FileHelper;
@@ -33,6 +34,37 @@ public final class AkiraExcel {
 	private AkiraExcel() {
 	}
 
+	/**
+	 * @author duynh5
+	 * @param <T> The expected class of the value.
+	 * @param file Excel file to import
+	 * @param type The type of Class corresponding with a row in excel
+	 * @param options Options for parsing excel
+	 * @return A list of object in java
+	 */
+	public static synchronized <T> List<T> fromExcel(final File file, final Class<T> type, AkiraExcelOptions options) {
+		AkiraExcelType excelType = FileHelper.getType(file.getName());
+		AkiraWraper<T> wraper = new AkiraWraper<T>(file, excelType, type, options);
+		List<T> list = wraper.deserialize();
+		return list;
+	}
+	
+	/**
+	 * @author duynh5	 	 
+	 * @param <T> The expected class of the value.
+	 * @param inputStream The input stream of excel file
+	 * @param excelType Type of excel, must be XLS or XLSX
+	 * @param type The type of Class corresponding with a row in excel
+	 * @param options Options for parsing excel
+	 * @return A list of object in java
+	 */
+	public static synchronized <T> List<T> fromExcel(final InputStream inputStream, AkiraExcelType excelType,
+			final Class<T> type, AkiraExcelOptions options) {
+		AkiraWraper<T> wraper = new AkiraWraper<T>(inputStream, excelType, type, options);
+		List<T> list = wraper.deserialize();
+		return list;
+	}
+	
 	/**
 	 * @author duynh5
 	 * @param <T> The expected class of the value.

@@ -32,13 +32,32 @@ public class AkiraWraper<T> {
 
 	private Class<T> type;
 	private InputStream inputStream;
-	private Map<String, Integer> titles;
+	private Map<String, Integer> titles = new HashMap<>();
 	private AkiraExcelHandler<T> handler;
 	private DataFormatter dataFormatter;
 	private AkiraExcelType excelType;
 	private List<Field> fields = new ArrayList<>();
+	private AkiraExcelOptions options;
 
-	public AkiraWraper(final File excelFile,  final AkiraExcelType excelType, final Class<T> type) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public AkiraWraper(final File excelFile, final AkiraExcelType excelType, final Class<T> type,
+			AkiraExcelOptions options) {
+		this(excelFile, excelType, type);
+		// rewrite handler with custom options
+		this.options = options;
+		this.handler = new AkiraExcelHandler(type, options, titles);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public AkiraWraper(final InputStream inputStream, final AkiraExcelType excelType, final Class<T> type,
+			AkiraExcelOptions options) {
+		this(inputStream, excelType, type);
+		// rewrite handler with custom options
+		this.options = options;
+		this.handler = new AkiraExcelHandler(type, options, titles);
+	}
+
+	public AkiraWraper(final File excelFile, final AkiraExcelType excelType, final Class<T> type) {
 		this(type);
 		this.excelType = excelType;
 		try {
@@ -50,7 +69,7 @@ public class AkiraWraper<T> {
 
 	}
 
-	public AkiraWraper(final InputStream inputStream, final AkiraExcelType excelType,  final Class<T> type) {
+	public AkiraWraper(final InputStream inputStream, final AkiraExcelType excelType, final Class<T> type) {
 		this(type);
 		this.inputStream = inputStream;
 		this.excelType = excelType;
@@ -58,13 +77,12 @@ public class AkiraWraper<T> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private AkiraWraper(final Class<T> type) {
-		this.titles = new HashMap<>();
 		this.type = type;
-		this.handler = new AkiraExcelHandler(type, AkiraExcelOptions.AkiraExcelOptionsBuilder.settings().build(),
-				titles);
+		this.options = new AkiraExcelOptions.Builder().build();
+		this.handler = new AkiraExcelHandler(type, options, titles);
 		this.dataFormatter = new DataFormatter();
 		Class<?> superClass = type;
-		while(superClass != null) {
+		while (superClass != null) {
 			Field[] fieldArray = superClass.getDeclaredFields();
 			for (Field f : fieldArray) {
 				fields.add(f);
@@ -77,68 +95,85 @@ public class AkiraWraper<T> {
 	public List<T> deserialize() {
 		try {
 			Workbook workbook;
-			if(AkiraExcelType.XLSX.equals(excelType)) {
+			if (AkiraExcelType.XLSX.equals(excelType)) {
 				workbook = new XSSFWorkbook(this.inputStream);
-			}else {
+			} else {
 				workbook = new HSSFWorkbook(this.inputStream);
 			}
 			// default only read sheet 0
-			Sheet datatypeSheet = workbook.getSheetAt(0);
+			Sheet datatypeSheet = workbook.getSheetAt(options.getSheetIndex());
 			Iterator<Row> iterator = datatypeSheet.iterator();
-
+			// set title if excel does not has Header row
+			if (!options.isHasHeaderRow()) {
+				setDefaultTitlesList();
+			}
 			List<T> resultList = new ArrayList<>();
 			while (iterator.hasNext()) {
 				Row currentRow = iterator.next();
-				// display row number in the console.
 				Iterator<Cell> cellIterator = currentRow.iterator();
-				if (currentRow.getRowNum() == 0) {
-					// update title of column
-					while (cellIterator.hasNext()) {
-						Cell currentCell = cellIterator.next();
-						int collumIndex = currentCell.getColumnIndex();
-						String content = dataFormatter.formatCellValue(currentCell);
-						this.titles.put(content, collumIndex);
-					}
-					continue; // just skip the rows if row number is 0
-				} else {
-					T instance = handler.newInstanceOf(type);
-//					Field[] fields = type.getDeclaredFields();
-					while (cellIterator.hasNext()) {
-						Cell currentCell = cellIterator.next();
-						int collumIndex = currentCell.getColumnIndex();
-						String content = dataFormatter.formatCellValue(currentCell);
-						for (Field field : this.fields) {
-							if (handler.setValue(field, collumIndex, content, instance)) {
-								break;
-							}
+
+				// check for skipping row
+				if (options.isHasHeaderRow()) {
+					if (currentRow.getRowNum() < options.getHeaderRow()) {
+						continue; // just skip rows before header row
+					} else if (currentRow.getRowNum() == options.getHeaderRow()) {
+						// update title of column
+						while (cellIterator.hasNext()) {
+							Cell currentCell = cellIterator.next();
+							int collumIndex = currentCell.getColumnIndex();
+							String content = dataFormatter.formatCellValue(currentCell);
+							this.titles.put(content, collumIndex);
 						}
+						continue; // just skip the header row
+					} else if (currentRow.getRowNum() > options.getHeaderRow()
+							&& currentRow.getRowNum() <= (options.getHeaderRow() + options.getSkipRowAfterHeader())) {
+						continue; // just skip row after Header
 					}
-					// check if field can not be null
-					boolean checkCanBeNull = true;
+				}
+				// check if pass the dataRowStartAt condition
+				if (currentRow.getRowNum() < options.getDataRowStartAt()) {
+					continue;
+				}
+
+				// Starting reading data row
+				T instance = handler.newInstanceOf(type);
+//				Field[] fields = type.getDeclaredFields();
+				while (cellIterator.hasNext()) {
+					Cell currentCell = cellIterator.next();
+					int collumIndex = currentCell.getColumnIndex();
+					String content = dataFormatter.formatCellValue(currentCell);
 					for (Field field : this.fields) {
-						field.setAccessible(true);
-						Object o = getValueOfField(field, instance);
-						
-						if(o == null) {
-							// check if has default value
-							ExcelColumnDefaultValue defaultValue = field.getAnnotation(ExcelColumnDefaultValue.class);
-							if(defaultValue != null) {
-								this.handler.setValueDirectly(field, defaultValue.value(), instance);
-							}
-						}
-						
-						// check if field is null
-						ExcelColumnNotBlank columnNotBlank = field.getAnnotation(ExcelColumnNotBlank.class);
-						if(columnNotBlank != null) {
-							o = getValueOfField(field, instance);
-							if(o == null || String.valueOf(o).equals("")) {
-								throw new AkiraExcelException("Field " + field.getName() + " can not be blank at row " + currentRow.getRowNum());
-							}
+						if (handler.setValue(field, collumIndex, content, instance)) {
+							break;
 						}
 					}
-					if(checkCanBeNull) {
-						resultList.add(instance);
+				}
+				// check if field can not be null
+				boolean checkCanBeNull = true;
+				for (Field field : this.fields) {
+					field.setAccessible(true);
+					Object o = getValueOfField(field, instance);
+
+					if (o == null) {
+						// check if has default value
+						ExcelColumnDefaultValue defaultValue = field.getAnnotation(ExcelColumnDefaultValue.class);
+						if (defaultValue != null) {
+							this.handler.setValueDirectly(field, defaultValue.value(), instance);
+						}
 					}
+
+					// check if field is null
+					ExcelColumnNotBlank columnNotBlank = field.getAnnotation(ExcelColumnNotBlank.class);
+					if (columnNotBlank != null) {
+						o = getValueOfField(field, instance);
+						if (o == null || String.valueOf(o).equals("")) {
+							throw new AkiraExcelException(
+									"Field " + field.getName() + " can not be blank at row " + currentRow.getRowNum());
+						}
+					}
+				}
+				if (checkCanBeNull) {
+					resultList.add(instance);
 				}
 
 			}
@@ -162,5 +197,14 @@ public class AkiraWraper<T> {
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 		}
 		return o;
+	}
+
+	private void setDefaultTitlesList() {
+		for (Field field : this.fields) {
+			ExcelColumnIndex colIndex = field.getAnnotation(ExcelColumnIndex.class);
+			if (colIndex != null) {
+				this.titles.put(field.getName(), colIndex.value());
+			}
+		}
 	}
 }
