@@ -130,7 +130,7 @@ public final class AkiraExcelOptions {
 		/**
 		 * Skip a number of rows after the header row. The header row is not counted.
 		 *
-		 * @param skip ignored row number after the header row
+		 * @param skipRowAfterHeader ignored row number after the header row
 		 * @return builder itself
 		 */
 		public Builder skipRowAfterHeader(int skipRowAfterHeader) {
@@ -142,10 +142,9 @@ public final class AkiraExcelOptions {
 		}
 
 		/**
-		 * Set the start row contains data
-		 * Note: row is counted from 0
+		 * Set the start row contains data Note: row is counted from 0
 		 *
-		 * @param he start data row
+		 * @param dataRowStartAt the start data row
 		 * @return builder itself
 		 */
 		public Builder dataRowStartAt(int dataRowStartAt) {
@@ -180,8 +179,8 @@ public final class AkiraExcelOptions {
 		}
 
 		/**
-		 * set sheet index, default is 0
-		 * Note: counted from 0
+		 * set sheet index, default is 0 Note: counted from 0
+		 * 
 		 * @param sheetIndex number
 		 * @return this
 		 */
@@ -243,11 +242,10 @@ public final class AkiraExcelOptions {
 		}
 
 		/**
-		 * Whether Excel file has header row or not Default is True
-		 * Note: row is counted from 0
+		 * Whether Excel file has header row or not Default is True Note: row is counted
+		 * from 0
 		 *
-		 * @param headerStart an index number of the excel header to start reading
-		 *                    header
+		 * @param headerRow an index number of the excel header to start reading header
 		 * @return this
 		 */
 		public Builder headerRow(int headerRow) {
