@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,16 +26,22 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnDefaultValue;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnIndex;
 import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnNotBlank;
+import com.github.boyundefeated.akiraexcel.annotation.ExcelColumnTitle;
 import com.github.boyundefeated.akiraexcel.bind.AkiraExcelHandler;
 import com.github.boyundefeated.akiraexcel.exception.AkiraExcelException;
+import com.github.boyundefeated.akiraexcel.exception.ExcelRowReaderErrorException;
+import com.github.boyundefeated.akiraexcel.model.FailDetail;
+import com.github.boyundefeated.akiraexcel.model.RowFail;
 import com.github.boyundefeated.akiraexcel.utils.AkiraExcelOptions;
 import com.github.boyundefeated.akiraexcel.utils.AkiraExcelType;
+import com.github.boyundefeated.akiraexcel.utils.ValidatorUtil;
 
 public class AkiraWraper<T> {
 
 	private Class<T> type;
 	private InputStream inputStream;
 	private Map<String, Integer> titles = new HashMap<>();
+	private Map<String, Integer> fieldColMap = new HashMap<>();
 	private AkiraExcelHandler<T> handler;
 	private DataFormatter dataFormatter;
 	private AkiraExcelType excelType;
@@ -108,6 +117,7 @@ public class AkiraWraper<T> {
 				setDefaultTitlesList();
 			}
 			List<T> resultList = new ArrayList<>();
+			List<RowFail> listFail = new ArrayList<>();
 			while (iterator.hasNext()) {
 				Row currentRow = iterator.next();
 				Iterator<Cell> cellIterator = currentRow.iterator();
@@ -120,9 +130,11 @@ public class AkiraWraper<T> {
 						// update title of column
 						while (cellIterator.hasNext()) {
 							Cell currentCell = cellIterator.next();
-							int collumIndex = currentCell.getColumnIndex();
+							int columnIndex = currentCell.getColumnIndex();
 							String content = dataFormatter.formatCellValue(currentCell);
-							this.titles.put(content, collumIndex);
+							this.titles.put(content, columnIndex);
+							setFieldColMapByTitleOfColumn(content, columnIndex);
+
 						}
 						continue; // just skip the header row
 					} else if (currentRow.getRowNum() > options.getHeaderRow()
@@ -172,14 +184,47 @@ public class AkiraWraper<T> {
 						}
 					}
 				}
+
 				if (checkCanBeNull) {
 					resultList.add(instance);
 				}
 
+				// run validator
+				if (options.isUsingObjectValidator()) {
+					Set<ConstraintViolation<T>> constraintViolations = ValidatorUtil.getInstance().validate(instance);
+					if (constraintViolations != null && constraintViolations.size() > 0) {
+						RowFail rowFail = new RowFail();
+						rowFail.setRowNo(currentRow.getRowNum() + 1); // actual row number show to client start with 1
+						List<FailDetail> lsFailDetail = new ArrayList<>();
+						for (ConstraintViolation<T> constraintViolation : constraintViolations) {
+							FailDetail failDetail = new FailDetail();
+							String fieldName = constraintViolation.getPropertyPath() + "";
+							Integer colNo = getColumnNumberOfField(fieldName);
+							try {
+								String colAddress = currentRow.getCell(colNo).getAddress().toString();
+								failDetail.setCellAddress(colAddress);
+							} catch (Exception e) {
+
+							}
+							failDetail.setColNo(colNo == null ? null : colNo + 1); // actual col number start with 1
+							failDetail.setFieldName(fieldName);
+							failDetail.setInvalidValue(constraintViolation.getInvalidValue() + "");
+							failDetail.setMessage(constraintViolation.getMessage());
+							lsFailDetail.add(failDetail);
+						}
+						rowFail.setListFailDetail(lsFailDetail);
+						listFail.add(rowFail);
+						System.out.println(rowFail.toString());
+					}
+				}
 			}
 //			System.out.println("Titles");
 //			this.titles.keySet().stream().forEach(key -> System.out.println(key + " -- " + this.titles.get(key)));
 //			resultList.stream().forEach(e -> System.out.println(e.toString()));
+
+			if (listFail != null && listFail.size() > 0) {
+				throw new ExcelRowReaderErrorException(listFail, "Excel row data validation error");
+			}
 
 			return resultList;
 
@@ -204,7 +249,21 @@ public class AkiraWraper<T> {
 			ExcelColumnIndex colIndex = field.getAnnotation(ExcelColumnIndex.class);
 			if (colIndex != null) {
 				this.titles.put(field.getName(), colIndex.value());
+				this.fieldColMap.put(field.getName(), colIndex.value());
 			}
 		}
+	}
+
+	private void setFieldColMapByTitleOfColumn(String titleOfColumn, Integer colIndex) {
+		for (Field field : this.fields) {
+			ExcelColumnTitle title = field.getAnnotation(ExcelColumnTitle.class);
+			if (title != null && title.value().equals(titleOfColumn)) {
+				this.fieldColMap.put(field.getName(), colIndex);
+			}
+		}
+	}
+
+	private Integer getColumnNumberOfField(String fieldName) {
+		return this.fieldColMap.get(fieldName);
 	}
 }

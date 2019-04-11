@@ -20,6 +20,7 @@ public final class AkiraExcelOptions {
 	private Casting casting;
 	private int headerRow;
 	private boolean hasHeaderRow;
+	private boolean usingObjectValidator;
 
 	private AkiraExcelOptions() {
 		super();
@@ -75,6 +76,11 @@ public final class AkiraExcelOptions {
 		return this;
 	}
 
+	public AkiraExcelOptions setUsingObjectValidator(boolean usingObjectValidator) {
+		this.usingObjectValidator = usingObjectValidator;
+		return this;
+	}
+
 	public int getDataRowStartAt() {
 		return dataRowStartAt;
 	}
@@ -115,6 +121,10 @@ public final class AkiraExcelOptions {
 		return hasHeaderRow;
 	}
 
+	public boolean isUsingObjectValidator() {
+		return usingObjectValidator;
+	}
+
 	public static class Builder {
 		private int dataRowStartAt = 0;
 		private int skipRowAfterHeader = 0;
@@ -126,6 +136,7 @@ public final class AkiraExcelOptions {
 		private Casting casting = new DefaultCasting();
 		private int headerRow = 0;
 		private boolean hasHeaderRow = true;
+		private boolean usingObjectValidator = false;
 
 		/**
 		 * Skip a number of rows after the header row. The header row is not counted.
@@ -256,6 +267,19 @@ public final class AkiraExcelOptions {
 			return this;
 		}
 
+		/**
+		 * After parsing value, AkiraWrapper will use Java Validation to validate object
+		 * and throws ExcelRowReaderErrorException if any constraint id not valid Default
+		 * value is False
+		 *
+		 * @param usingObjectValidator true or false
+		 * @return this
+		 */
+		public Builder usingObjectValidator(boolean usingObjectValidator) {
+			this.usingObjectValidator = usingObjectValidator;
+			return this;
+		}
+
 		public AkiraExcelOptions build() {
 			// @formatter:off
 			return new AkiraExcelOptions()
@@ -268,7 +292,8 @@ public final class AkiraExcelOptions {
 					.setDatePattern(datePattern)
 					.setCasting(casting)
 					.setHeaderRow(headerRow)
-					.setHasHeaderRow(hasHeaderRow);
+					.setHasHeaderRow(hasHeaderRow)
+					.setUsingObjectValidator(usingObjectValidator);
 			// @formatter:on
 		}
 

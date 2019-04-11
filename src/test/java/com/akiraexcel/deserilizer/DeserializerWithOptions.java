@@ -40,7 +40,7 @@ public class DeserializerWithOptions {
 				.skipRowAfterHeader(1)
 				.build();
 		List<EmployeeWithOption> employees = AkiraExcel.fromExcel(new File(path), EmployeeWithOption.class, options);
-		employees.stream().forEach(e -> System.out.println(e.toString()));
+//		employees.stream().forEach(e -> System.out.println(e.toString()));
 
 		assertThat(employees, notNullValue());
 		assertThat(employees.size(), is(2));

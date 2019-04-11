@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.boyundefeated</groupId>
 	<artifactId>akira-excel</artifactId>
-	<version>1.0.5</version>
+	<version>1.0.6-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 
@@ -36,6 +36,8 @@
 
 	<properties>
 		<apache.poi.version>4.0.0</apache.poi.version>
+		<hibernate.validation.version>6.0.16.Final</hibernate.validation.version>
+		<javax.el.version>3.0.1-b09</javax.el.version>
 		<junit.version>4.12</junit.version>
 		<project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -59,13 +61,24 @@
 			<artifactId>poi-ooxml</artifactId>
 			<version>${apache.poi.version}</version>
 		</dependency>
+		<!-- http://hibernate.org/validator/documentation/getting-started/ -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>${hibernate.validation.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
+			<version>${javax.el.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 
 	<distributionManagement>
