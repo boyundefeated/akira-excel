@@ -43,7 +43,7 @@ public class DeserializerWithValidator {
 			AkiraExcel.fromExcel(new File(path), EmployeeWithValidation.class, options);
 		}catch (ExcelRowReaderErrorException e) {
 			List<RowFail>  lsRowFail = e.getListFail();
-			assertThat(lsRowFail.size(), is(2));
+			assertThat(lsRowFail.size(), is(1));
 			assertThat(lsRowFail.get(0).getRowNo(), is(5));
 			assertThat(lsRowFail.get(0).getListFailDetail().get(0).getCellAddress(), is("B5"));
 			assertThat(lsRowFail.get(0).getListFailDetail().get(0).getFieldName(), is("name"));

@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.boyundefeated</groupId>
 	<artifactId>akira-excel</artifactId>
-	<version>1.0.6-SNAPSHOT</version>
+	<version>1.0.7-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 
 	<name>AkiraExcel</name>
-	<description>Small tools make easier to import/export excel with Java POJO object </description>
+	<description>A library make import/export excel easier with Java POJO object </description>
 	<url>https://github.com/boyundefeated/akira-excel</url>
 
 	<licenses>

@@ -11,12 +11,12 @@ Akira Excel is small Java library that provides easier mapping between Excel she
 <dependency>
   <groupId>com.github.boyundefeated</groupId>
   <artifactId>akira-excel</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.6</version>
 </dependency>
 ```
 - Import using Gradle
 ```
-compile("com.github.boyundefeated:akira-excel:1.0.1")
+compile("com.github.boyundefeated:akira-excel:1.0.6")
 ```
 
 - Create a POJO to mapping with excel file

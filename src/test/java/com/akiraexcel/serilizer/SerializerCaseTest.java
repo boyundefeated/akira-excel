@@ -8,6 +8,7 @@ import static org.junit.Assert.assertThat;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -61,5 +62,45 @@ public class SerializerCaseTest {
 		assertThat(employees.size(), is(3));
 		assertThat(employees.get(0).getWeight(), notNullValue());
 		assertThat(employees.get(0).getHeight(), notNullValue());
+	}
+
+	@Test
+	public void shouldMapJavaToExcelWith10kRowsData() throws IOException {
+		List<Employee> e3 = Data.fakeEmployes(); // just 3 rows
+		List<Employee> employees = new ArrayList<>();
+		for (int i = 0; i <= 10000/3; i++) {
+			employees.addAll(e3);
+		}
+		System.out.println("Size of employees = " + employees.size());
+		FileOutputStream fileOut = new FileOutputStream(FILENAME);
+		long startTime = System.currentTimeMillis();
+		Workbook wb = AkiraExcel.toExcel(employees, new AkiraWriterFormatOptions.Builder().build());
+		// write this workbook to an output stream.
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
+		long endTime = System.currentTimeMillis();
+		System.out.println("Take time: " + (endTime - startTime) + "ms");
+		assertNotNull(wb);
+	}
+
+	@Test
+	public void shouldMapJavaToExcelWith50kRowsData() throws IOException {
+		List<Employee> e3 = Data.fakeEmployes(); // just 3 rows
+		List<Employee> employees = new ArrayList<>();
+		for (int i = 0; i <= 100000/3; i++) {
+			employees.addAll(e3);
+		}
+		System.out.println("Size of employees = " + employees.size());
+		FileOutputStream fileOut = new FileOutputStream(FILENAME);
+		long startTime = System.currentTimeMillis();
+		Workbook wb = AkiraExcel.toExcel(employees, new AkiraWriterFormatOptions.Builder().build());
+		// write this workbook to an output stream.
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
+		long endTime = System.currentTimeMillis();
+		System.out.println("Take time: " + (endTime - startTime) + "ms");
+		assertNotNull(wb);
 	}
 }
