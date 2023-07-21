@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
+import com.github.boyundefeated.akiraexcel.model.SheetDataModel;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -18,16 +19,16 @@ import com.github.boyundefeated.akiraexcel.utils.FileHelper;
 
 /**
  * The entry point of the mapping process.
- * 
+ *
  * Example:
- * 
+ *
  * List{Employee} employees = AkiraExcel.fromExcel(new File("employees.xls"), Employee.class);
  * employees.size(); // 3
- * 
+ *
  * Workbook wb = AkiraExcel.toExcel(employees);
- * 
+ *
  * NOTE @ExcelColumnIndex is higher priority than @ExcelColumnTitle
- * 
+ *
  */
 public final class AkiraExcel {
 
@@ -48,9 +49,9 @@ public final class AkiraExcel {
 		List<T> list = wraper.deserialize();
 		return list;
 	}
-	
+
 	/**
-	 * @author duynh5	 	 
+	 * @author duynh5
 	 * @param <T> The expected class of the value.
 	 * @param inputStream The input stream of excel file
 	 * @param excelType Type of excel, must be XLS or XLSX
@@ -64,7 +65,7 @@ public final class AkiraExcel {
 		List<T> list = wraper.deserialize();
 		return list;
 	}
-	
+
 	/**
 	 * @author duynh5
 	 * @param <T> The expected class of the value.
@@ -80,7 +81,7 @@ public final class AkiraExcel {
 	}
 
 	/**
-	 * @author duynh5	 	 
+	 * @author duynh5
 	 * @param <T> The expected class of the value.
 	 * @param inputStream The input stream of excel file
 	 * @param excelType Type of excel, must be XLS or XLSX
@@ -95,7 +96,7 @@ public final class AkiraExcel {
 	}
 
 	/**
-	 * @author duynh5	 	 
+	 * @author duynh5
 	 * @param <T> The expected class of the value.
 	 * @param data List data to be exported
 	 * @param type The class type of data
@@ -117,7 +118,28 @@ public final class AkiraExcel {
 	}
 
 	/**
-	 * @author duynh5	 	 
+	 * @author quangbs
+	 * @param sheetDataModels object data to be exported
+	 * @return A excel workbook
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static synchronized Workbook toExcelMultipleSheet(List<SheetDataModel> sheetDataModels) {
+		XSSFWorkbook wb = new XSSFWorkbook();
+		sheetDataModels.forEach(sheetDataModel -> {
+			XSSFSheet sheet = wb.createSheet(sheetDataModel.getSheetName());
+			sheetDataModel.getOptions().validate(wb); // important
+			try {
+				AkiraSheetWriter<?> sheetWriter = new AkiraSheetWriter<>(sheet, sheetDataModel.getData(), sheetDataModel.getClazz(), sheetDataModel.getOptions());
+				sheetWriter.write();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		});
+		return wb;
+	}
+
+	/**
+	 * @author duynh5
 	 * @param <T> The expected class of the value.
 	 * @param data List data to be exported
 	 * @param type The class type of data
@@ -128,7 +150,7 @@ public final class AkiraExcel {
 	}
 
 	/**
-	 * @author duynh5	 	 
+	 * @author duynh5
 	 * @param <T> The expected class of the value.
 	 * @param data List data to be exported
 	 * @param options The options
@@ -145,7 +167,7 @@ public final class AkiraExcel {
 	}
 
 	/**
-	 * @author duynh5	 	 
+	 * @author duynh5
 	 * @param <T> The expected class of the value.
 	 * @param data List data to be exported
 	 * @return A excel workbook

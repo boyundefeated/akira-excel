@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.akiraexcel.model.Employee;
+import com.akiraexcel.model.Person;
 
 public final class Data {
 
@@ -46,5 +47,21 @@ public final class Data {
 		employees.add(employee3);
 
 		return employees;
+	}
+
+	public static List<Person> fakePerson() {
+		List<Person> people = new ArrayList<>(3);
+
+		Person person = new Person();
+		person.setHeight("1m8");
+		person.setWeight("75kg");
+		people.add(person);
+
+		Person person1 = new Person();
+		person1.setHeight("1m7");
+		person1.setWeight("60kg");
+		people.add(person1);
+
+		return people;
 	}
 }

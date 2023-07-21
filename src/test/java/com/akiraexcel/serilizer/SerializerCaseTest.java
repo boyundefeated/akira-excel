@@ -9,8 +9,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.akiraexcel.model.Person;
+import com.github.boyundefeated.akiraexcel.model.SheetDataModel;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.AfterClass;
 import org.junit.FixMethodOrder;
@@ -101,6 +105,29 @@ public class SerializerCaseTest {
 		fileOut.close();
 		long endTime = System.currentTimeMillis();
 		System.out.println("Take time: " + (endTime - startTime) + "ms");
+		assertNotNull(wb);
+	}
+
+	@Test
+	public void shouldMapJavaToExcelWithMultipleSheet() throws IOException {
+		List<Employee> employees = Data.fakeEmployes();
+		List<Person> personList = Data.fakePerson();
+
+		FileOutputStream fileOut = new FileOutputStream(FILENAME);
+
+		SheetDataModel sheetDataModel = new SheetDataModel("quangbs_test", Employee.class, employees, new AkiraWriterFormatOptions.Builder().build());
+		SheetDataModel sheetDataModelPerson = new SheetDataModel("Person", Person.class, personList, new AkiraWriterFormatOptions.Builder().build());
+
+		List<SheetDataModel> sheetDataModels = new ArrayList<>();
+		sheetDataModels.add(sheetDataModel);
+		sheetDataModels.add(sheetDataModelPerson);
+
+		Workbook wb = AkiraExcel.toExcelMultipleSheet(sheetDataModels);
+		// write this workbook to an Outputstream.
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
+
 		assertNotNull(wb);
 	}
 }
